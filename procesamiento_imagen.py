@@ -1,23 +1,26 @@
-# procesamiento_asignacion_cv2.py
 import cv2
 import numpy as np
 
 # ============
-# Configura aquí tus imágenes
+# Configuración de rutas de las imágenes
 # ============
 IN_PATHS = {
     "frontal": "luz_frontal.jpg",
-    "natural": "luz_natural.jpg",  # usada como referencia para operaciones aritméticas
+    "natural": "luz_natural.jpg",
     "superior": "luz_superior.jpg",
 }
 
+# Parámetros para redimensionar y cuantizar
 RESIZE_WIDTH = 900
 LEVELS = [256, 64, 32, 16, 8, 2]  # cuantización
 
 
-# ============
+# =================
 # Utilidades
-# ============
+# =================
+
+
+# Carga y redimensiona manteniendo la relación de aspecto
 def load_and_resize(path, width=900):
     img = cv2.imread(path)
     if img is None:
@@ -29,16 +32,19 @@ def load_and_resize(path, width=900):
     )
 
 
+# Convierte BGR a escala de grises
 def to_gray(bgr):
     return cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
 
 
+# Cuantiza una imagen en niveles dados
 def quantize(gray, levels):
     step = max(1, 256 // levels)
     q = (gray // step) * step
     return q.astype(np.uint8)
 
 
+# Binarización usando el método de Otsu
 def otsu(gray):
     _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return bw
