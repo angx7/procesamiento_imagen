@@ -81,6 +81,13 @@ def stack_rows(*imgs):
 
 
 def show(title, img):
+    # Redimensionar si la imagen es muy grande
+    max_width = 1200
+    max_height = 800
+    h, w = img.shape[:2]
+    scale = min(max_width / w, max_height / h, 1.0)
+    if scale < 1.0:
+        img = cv2.resize(img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
     cv2.imshow(title, img)
     cv2.waitKey(0)
     cv2.destroyWindow(title)
@@ -140,15 +147,18 @@ def main():
         blend = cv2.addWeighted(img, 0.5, ref, 0.5, 0)
         bright = cv2.convertScaleAbs(img, alpha=1.25, beta=10)
         dark = cv2.convertScaleAbs(img, alpha=0.85, beta=-10)
+        mult_img = cv2.multiply(img.astype(np.float32)/255, ref.astype(np.float32)/255)
+        mult_img = np.clip(mult_img * 255, 0, 255).astype(np.uint8)
 
         a = banner(sum_img, f"{name} + natural (suma saturada)")
         b = banner(diff_img, f"|{name} - natural| (diferencia)")
         c = banner(blend, f"Mezcla 0.5/0.5 con natural")
+        m = banner(mult_img, f"{name} * natural (multiplicación)")
         d = banner(bright, f"{name} escala alpha=1.25, beta=10")
         e = banner(dark, f"{name} escala alpha=0.85, beta=-10")
 
         # mostrar en dos tandas para no saturar
-        show(f"Aritméticos 1/2 ({name})", stack_rows(a, b, c))
+        show(f"Aritméticos 1/2 ({name})", stack_rows(a, b, c, m))
         show(f"Aritméticos 2/2 ({name})", stack_rows(d, e))
 
     # 5) Kernels (suavizado, realce, bordes)
